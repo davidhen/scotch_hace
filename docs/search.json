@@ -1,0 +1,72 @@
+[
+  {
+    "objectID": "03_analysis/01_rii_analysis.html",
+    "href": "03_analysis/01_rii_analysis.html",
+    "title": "ScotCH HACE analysis",
+    "section": "",
+    "text": "HACE results\n\n\n[1] \"/Users/dhender6/Library/CloudStorage/OneDrive-UniversityofEdinburgh/github/scotch_hace\""
+  },
+  {
+    "objectID": "03_analysis/01_rii_analysis.html#introduction",
+    "href": "03_analysis/01_rii_analysis.html#introduction",
+    "title": "ScotCH HACE analysis",
+    "section": "",
+    "text": "HACE results\n\n\n[1] \"/Users/dhender6/Library/CloudStorage/OneDrive-UniversityofEdinburgh/github/scotch_hace\""
+  },
+  {
+    "objectID": "03_analysis/01_rii_analysis.html#table-1",
+    "href": "03_analysis/01_rii_analysis.html#table-1",
+    "title": "ScotCH HACE analysis",
+    "section": "Table 1",
+    "text": "Table 1\nOverall characteristics of respondents by year (labels need tidied up)"
+  },
+  {
+    "objectID": "03_analysis/01_rii_analysis.html#figure-1",
+    "href": "03_analysis/01_rii_analysis.html#figure-1",
+    "title": "ScotCH HACE analysis",
+    "section": "Figure 1",
+    "text": "Figure 1\nQuick look at overall scores for percentage of positive responses (with missing data removed), for the four questions analysed:\n\nOverall, how would you rate the care provided by your GP surgery/practice? (Overall Satisfaction)\nOverall, how would you rate getting to see a doctor in your GP surgery? (Access)\nThinking of the last time you saw a doctor at your GP surgery how much would you agree or disagree with the following?\n\n\nThe doctor listens/listened to me (Listened)\nI was given enough time (Time)"
+  },
+  {
+    "objectID": "03_analysis/01_rii_analysis.html#figure-2",
+    "href": "03_analysis/01_rii_analysis.html#figure-2",
+    "title": "ScotCH HACE analysis",
+    "section": "Figure 2",
+    "text": "Figure 2\nOverall scores split by most and least deprived respondents (might be a better figure 1 for the paper)"
+  },
+  {
+    "objectID": "03_analysis/01_rii_analysis.html#figure-3",
+    "href": "03_analysis/01_rii_analysis.html#figure-3",
+    "title": "ScotCH HACE analysis",
+    "section": "Figure 3",
+    "text": "Figure 3\nRelative index of inequality for each of the four questions.\nShows the relative difference between most and least deprived deciles, will give more details in methods section but, for example, RII of 1.05 (rough overall score in 2011/12) suggests predicted % for most deprived is 5% lower than for the least deprived. RII of 1.12 (rough overall score in 2021/22) suggest predicted % for most deprived is 12% lower than for least deprived. So if % positive rate was 90 for least deprived we would predict score of 85% for most deprived in 2011/12 but 78% in 2021/22.\nMain takeaway is that, apart from the access question, the relative difference in positive responses has widened over time i.e. inequality in satisfaction is getting worse."
+  },
+  {
+    "objectID": "03_analysis/01_rii_analysis.html#figure-4",
+    "href": "03_analysis/01_rii_analysis.html#figure-4",
+    "title": "ScotCH HACE analysis",
+    "section": "Figure 4",
+    "text": "Figure 4\nSame as above but stratified by age group. Gets a bit messy here, might be better as a table but likely to be in supplementary file anyhow.\nThis shows the relative difference between most and least deprived deciles by age group.\nThere are differences between least and most deprived between and within age groups."
+  },
+  {
+    "objectID": "03_analysis/01_rii_analysis.html#figure-5",
+    "href": "03_analysis/01_rii_analysis.html#figure-5",
+    "title": "ScotCH HACE analysis",
+    "section": "Figure 5",
+    "text": "Figure 5\nAnd the same for conditions"
+  },
+  {
+    "objectID": "03_analysis/01_rii_analysis.html#figure-6",
+    "href": "03_analysis/01_rii_analysis.html#figure-6",
+    "title": "ScotCH HACE analysis",
+    "section": "Figure 6",
+    "text": "Figure 6\nAge * Sex"
+  },
+  {
+    "objectID": "03_analysis/01_rii_analysis.html#figure-7",
+    "href": "03_analysis/01_rii_analysis.html#figure-7",
+    "title": "ScotCH HACE analysis",
+    "section": "Figure 7",
+    "text": "Figure 7\nOverall Satisfaction question only!\nAge * Sex * MM\nNumbers start to get very small here, difficult to argue these results are robust, but does show the pattern that the gap in satisfaction between most and least deprived is widest for young, multimorbid people"
+  }
+]

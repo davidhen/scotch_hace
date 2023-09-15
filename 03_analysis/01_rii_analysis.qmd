@@ -1,0 +1,400 @@
+---
+title: "ScotCH HACE analysis"
+author: "Dr David Henderson"
+format: 
+  html:
+    fig-width: 12
+    fig-height: 9
+    code-fold: true
+execute: 
+  echo: false
+editor: source
+---
+
+## Introduction
+
+HACE results
+
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(ggthemes))
+suppressPackageStartupMessages(library(ggsci))
+suppressPackageStartupMessages(library(patchwork))
+suppressPackageStartupMessages(library(here))
+suppressPackageStartupMessages(library(PHEindicatormethods))
+here()
+
+#Baseline plot settings
+theme_set(theme_minimal(base_family = "Helvetica", base_size = 28) +
+            theme(panel.grid.minor = element_blank(),
+                  #axis.title.y = element_text(margin = margin(0, 20, 0, 0)),
+                  #axis.title.x = element_text(margin = margin(20, 0, 0, 0)),
+                  axis.line.x = element_line(colour = 'black', size=0.5,
+                                             linetype='solid'),
+                  axis.line.y = element_line(colour = 'black', size=0.5,
+                                             linetype='solid'),
+                  strip.text = element_text(face = "bold"),
+                  plot.caption = element_text(colour = "#AAAAAA"),
+                  plot.margin = margin(3,15,3,3,"mm")))
+
+#Short cut for csv output with html tables
+my_datatable <- function(x){
+  DT::datatable(x, extensions = "Buttons", options = list(dom = "Bfrtip", 
+                                                          buttons = c("csv")))
+}
+
+`%nin%` <- negate(`%in%`)
+source(here("02_functions", "rii_func.R"))
+
+tab_1 <- read_csv(here("01_data", "20230908_table_1.csv"))
+tab_2 <- read_csv(here("01_data", "20230908_overall_scores.csv"))
+tab_3 <- read_csv(here("01_data", "20230908_rii_data.csv"))
+```
+
+
+## Table 1
+
+Overall characteristics of respondents by year (labels need tidied up)
+
+```{r}
+tab_1 %>%
+  select(label, levels, Total, everything()) %>%
+  my_datatable(.) 
+```
+
+
+## Figure 1
+
+Quick look at overall scores for percentage of positive responses (with missing data removed), for the four questions analysed:
+
+1. Overall, how would you rate the care provided by your GP surgery/practice? (Overall Satisfaction)
+2. Overall, how would you rate getting to see a doctor in your GP surgery? (Access)
+3. Thinking of the last time you saw a doctor at your GP surgery how much would you agree or disagree with the following?
+  a) The doctor listens/listened to me (Listened)
+  b) I was given enough time (Time)
+
+```{r, fig.width=16, fig.height=16}
+tab_2 %>%
+  mutate(year = as.character(year) %>% 
+           factor(.,
+                  levels = c("1112", "1314", "1516", "1718", "1920", "2122"),
+                  labels = c("2011/12", "2013/14", "2015/16", "2017/18",
+                             "2019/20", "2021/22")),
+         question = factor(question,
+                           levels = c("Overall Satisfaction", "Access",
+                                      "Listened", "Time"))) %>%
+  ggplot(aes(year, pct_positive, group = 2, colour = question)) +
+  geom_point() +
+  geom_line() +
+  scale_y_continuous(limits = c(0, 100),
+                     label = scales::percent_format(scale = 1),
+                     expand = expansion(mult = c(0.01, 0.01))) +
+  scale_x_discrete(expand = expansion(mult = c(0.01, 0.01))) +
+  scale_colour_jama() +
+  facet_wrap(~question) +
+  theme(legend.position = "none",
+        panel.spacing = unit(4, "lines"),
+        panel.grid.major.x = element_blank(),
+        axis.text = element_text(size = 16)) +
+  labs(y = "",
+       x = "")
+```
+
+
+## Figure 2
+
+Overall scores split by most and least deprived respondents (might be a better figure 1 for the paper)
+
+```{r, fig.width=18, fig.height=16}
+tab_3 %>%
+  filter(if_all(age_band:ur3, ~is.na(.))) %>% 
+  filter(decile %nin% c(2:9)) %>%
+  mutate(question = factor(question,
+                           levels = c("Overall Satisfaction", "Access",
+                                      "listened", "time"),
+                           labels = c("Overall Satisfaction", "Access",
+                                      "Listened", "Time")),
+         year = as.character(year) %>% 
+           factor(.,
+                  levels = c("1112", "1314", "1516", "1718", "1920", "2122"),
+                  labels = c("2011/12", "2013/14", "2015/16", "2017/18",
+                             "2019/20", "2021/22"))) %>%
+  ggplot(aes(year, pct, group = decile, colour = decile)) +
+  geom_point() +
+  geom_line() +
+  scale_y_continuous(limits = c(0, 100),
+                     label = scales::percent_format(scale = 1),
+                     expand = expansion(mult = c(0.01, 0.01))) +
+  scale_x_discrete(expand = expansion(mult = c(0.01, 0.01))) +
+  scale_colour_jama() +
+  facet_wrap(~question) +
+  theme(legend.position = "top",
+        panel.spacing = unit(4, "lines"),
+        panel.grid.major.x = element_blank(),
+        axis.text.x = element_text(size = 16)) +
+  labs(y = "",
+       x = "",
+       colour = "")
+```
+
+
+## Figure 3
+
+Relative index of inequality for each of the four questions.
+
+Shows the relative difference between most and least deprived deciles, will give more details in methods section but, for example, RII of 1.05 (rough overall score in 2011/12) suggests predicted % for most deprived is 5% lower than for the least deprived. RII of 1.12 (rough overall score in 2021/22) suggest predicted % for most deprived is 12% lower than for least deprived. So if % positive rate was 90 for least deprived we would predict score of 85% for most deprived in 2011/12 but 78% in 2021/22.
+
+Main takeaway is that, apart from the access question, the relative difference in positive responses has widened over time i.e. inequality in satisfaction is getting worse.
+
+```{r, fig.width=16, fig.height=16, message=FALSE}
+tab_3 %>%
+  filter(if_all(age_band:ur3, ~is.na(.))) %>%
+  rii_func(., group = c("year", "question")) %>%
+  ungroup %>%
+  mutate(question = factor(question,
+                           levels = c("Overall Satisfaction", "Access",
+                                      "listened", "time"),
+                           labels = c("Overall Satisfaction", "Access",
+                                      "Listened", "Time")),
+         year = as.character(year) %>% 
+           factor(.,
+                  levels = c("1112", "1314", "1516", "1718", "1920", "2122"),
+                  labels = c("2011/12", "2013/14", "2015/16", "2017/18",
+                             "2019/20", "2021/22"))) %>%
+  ggplot(aes(year, rii, ymin = rii_lo, ymax = rii_hi, 
+             colour = question, group = question)) +
+  geom_point(size = 4) +
+  geom_errorbar() +
+  scale_colour_jama() +
+  facet_wrap(~question) +
+  scale_y_continuous(limits = c(0.9, 1.2),
+                     expand = expansion(mult = c(0.01, 0.01))) +
+  scale_x_discrete(expand = expansion(mult = c(0.01, 0.01))) +
+  theme(legend.position = "none",
+        panel.spacing = unit(4, "lines"),
+        axis.text.x = element_text(size = 16),
+        panel.grid.major.x = element_blank()) +
+  labs(y = "Relative Index of Inequality",
+       x = "") 
+```
+
+## Figure 4
+
+Same as above but stratified by age group. Gets a bit messy here, might be better as a table but likely to be in supplementary file anyhow.
+
+This shows the relative difference between most and least deprived deciles by age group.
+
+There are differences between least and most deprived between and within age groups. 
+
+
+```{r, fig.width=16, fig.height=16, message=FALSE}
+tab_3 %>%
+  filter(!if_all(age_band:ur3, ~is.na(.))) %>%
+  filter(if_all(sex:ur3, ~is.na(.))) %>%
+  rii_func(., group = c("year", "age_band", "question")) %>%
+  ungroup %>%
+  mutate(question = factor(question,
+                           levels = c("Overall Satisfaction", "Access",
+                                      "listened", "time"),
+                           labels = c("Overall Satisfaction", "Access",
+                                      "Listened", "Time")),
+         year = as.character(year) %>% 
+           factor(.,
+                  levels = c("1112", "1314", "1516", "1718", "1920", "2122"),
+                  labels = c("2011/12", "2013/14", "2015/16", "2017/18",
+                             "2019/20", "2021/22"))) %>%
+  ggplot(aes(year, rii, ymin = rii_lo, ymax = rii_hi, 
+             colour = age_band, group = age_band)) +
+  geom_point(size = 4) +
+  geom_errorbar() +
+  scale_colour_jama() +
+  facet_wrap(~question) +
+  scale_y_continuous(limits = c(0.9, 1.4),
+                     expand = expansion(mult = c(0.01, 0.01))) +
+  scale_x_discrete(expand = expansion(mult = c(0.01, 0.01))) +
+  theme(legend.position = "top",
+        panel.spacing = unit(4, "lines"),
+        axis.text.x = element_text(size = 16),
+        panel.grid.major.x = element_blank()) +
+  labs(y = "Relative Index of Inequality",
+       x = "",
+       colour = "Age group") 
+```
+
+## Figure 5
+
+And the same for conditions
+
+
+```{r, fig.width=16, fig.height=16, message=FALSE}
+tab_3 %>%
+  filter(!if_all(age_band:ur3, ~is.na(.))) %>%
+  filter(if_all(c(age_band, sex, ur3), ~is.na(.))) %>%
+  rii_func(., group = c("year", "mm", "question")) %>%
+  ungroup %>%
+  mutate(question = factor(question,
+                           levels = c("Overall Satisfaction", "Access",
+                                      "listened", "time"),
+                           labels = c("Overall Satisfaction", "Access",
+                                      "Listened", "Time")),
+         year = as.character(year) %>% 
+           factor(.,
+                  levels = c("1112", "1314", "1516", "1718", "1920", "2122"),
+                  labels = c("2011/12", "2013/14", "2015/16", "2017/18",
+                             "2019/20", "2021/22"))) %>%
+  ggplot(aes(year, rii, ymin = rii_lo, ymax = rii_hi, 
+             colour = mm, group = mm)) +
+  geom_point(size = 4) +
+  geom_errorbar() +
+  scale_colour_jama() +
+  facet_wrap(~question) +
+  scale_y_continuous(limits = c(0.9, 1.4),
+                     expand = expansion(mult = c(0.01, 0.01))) +
+  scale_x_discrete(expand = expansion(mult = c(0.01, 0.01))) +
+  theme(legend.position = "top",
+        panel.spacing = unit(4, "lines"),
+        axis.text.x = element_text(size = 16),
+        panel.grid.major.x = element_blank()) +
+  labs(y = "Relative Index of Inequality",
+       x = "",
+       colour = "N conditions") 
+```
+
+## Figure 6
+
+Age * Sex
+
+
+```{r, fig.width=20, fig.height=20, message=FALSE}
+tab_3 %>%
+  filter(!if_all(age_band:ur3, ~is.na(.))) %>%
+  filter(if_all(c(mm, ur3), ~is.na(.))) %>%
+  filter(!if_any(c(age_band, sex), ~is.na(.))) %>%
+  rii_func(., group = c("year", "age_band", "sex", "question")) %>%
+  ungroup %>%
+  mutate(question = factor(question,
+                           levels = c("Overall Satisfaction", "Access",
+                                      "listened", "time"),
+                           labels = c("Overall Satisfaction", "Access",
+                                      "Listened", "Time")),
+         year = as.character(year) %>% 
+           factor(.,
+                  levels = c("1112", "1314", "1516", "1718", "1920", "2122"),
+                  labels = c("2011/12", "2013/14", "2015/16", "2017/18",
+                             "2019/20", "2021/22"))) %>%
+  ggplot(aes(year, rii, ymin = rii_lo, ymax = rii_hi, 
+             colour = sex, group = sex)) +
+  geom_point(size = 4) +
+  geom_errorbar() +
+  scale_colour_jama() +
+  facet_grid(question~age_band) +
+  scale_y_continuous(limits = c(0.9, 1.4),
+                     expand = expansion(mult = c(0.01, 0.01))) +
+  scale_x_discrete(expand = expansion(mult = c(0.01, 0.01))) +
+  theme(legend.position = "top",
+        panel.spacing = unit(4, "lines"),
+        axis.text.x = element_text(size = 16),
+        panel.grid.major.x = element_blank()) +
+  labs(y = "Relative Index of Inequality",
+       x = "",
+       colour = "") 
+```
+
+
+## Figure 7
+
+*Overall Satisfaction question only!*
+
+Age * Sex * MM
+
+Numbers start to get very small here, difficult to argue these results are robust, but does show the pattern that the gap in satisfaction between most and least deprived is widest for young, multimorbid people
+
+```{r, fig.width=20, fig.height=20, message=FALSE}
+tab_3 %>%
+  filter(question == "Overall Satisfaction") %>%
+  filter(!if_all(age_band:ur3, ~is.na(.))) %>%
+  filter(if_any(c(ur3), ~is.na(.))) %>%
+  filter(!if_any(c(age_band, sex, mm), ~is.na(.))) %>%
+  rii_func(., group = c("year", "age_band", "sex", "mm")) %>%
+  ungroup %>%
+  mutate(year = as.character(year) %>% 
+           factor(.,
+                  levels = c("1112", "1314", "1516", "1718", "1920", "2122"),
+                  labels = c("2011/12", "2013/14", "2015/16", "2017/18",
+                             "2019/20", "2021/22"))) %>%
+  ggplot(aes(year, rii, ymin = rii_lo, ymax = rii_hi, 
+             colour = mm, group = mm)) +
+  geom_point(size = 4) +
+  geom_errorbar() +
+  scale_colour_jama() +
+  facet_grid(sex~age_band) +
+  scale_y_continuous(limits = c(0.8, 1.6),
+                     expand = expansion(mult = c(0.01, 0.01))) +
+  scale_x_discrete(expand = expansion(mult = c(0.01, 0.01))) +
+  theme(legend.position = "top",
+        panel.spacing = unit(4, "lines"),
+        axis.text.x = element_text(size = 16),
+        panel.grid.major.x = element_blank()) +
+  labs(y = "Relative Index of Inequality",
+       x = "",
+       colour = "N conditions") 
+```
+
+```{r, eval=FALSE}
+age_rii %>%
+  ggplot(aes(year, rii, ymin = rii_lo, ymax - rii_hi, colour = age_band)) +
+  geom_point(size = 4) +
+  geom_errorbar() +
+  scale_colour_jama() +
+  facet_wrap(~age_band) +
+  scale_y_continuous(limits = c(0.9, 1.4)) +
+  theme(panel_grid.major.x = element_blank(),
+        legend.position = "none")
+```
+
+
+
+
+
+```{r, eval=FALSE}
+
+set_flextable_defaults(
+  font.family = "open Sans",
+  font.size = 10,
+  padding.bottom = 3, 
+  padding.top = 3,
+  padding.left = 3,
+  padding.right = 3
+)
+
+
+table_1 %>%
+  flextable() %>%
+  add_header_lines("Table 1. Characteristics of HACE respondents by year") %>%
+  align(part = "all", align = "center", j=2:ncol(table_1)) %>%
+  border_remove(.) %>%
+  hline(part = "header", i = 1) %>%
+  hline_bottom(part = "body", border = fp_border_default(color = "black")) %>%
+  hline_top(part = "header", border = fp_border_default(colour = "black")) %>%
+  vline_left(border = fp_border_default(color = "black")) %>%
+  vline_right(border = fp_border_default(color = "black")) %>%
+  bold(part = "header", i = 1) %>%
+  #bold(part = "body", i = 1) %>%
+  #padding(part = "body), j = 1, i = c(), padding.left = 30) %>%
+  bg(bg = "#E0E5ED", part = "body", i=seq(2, nrow(table_1), 2)) %>%
+  bg(bg = "#B8C8DB", part = "header", i = 1) %>%
+  #set_header_labels(i = 1, "label" = " ") %>%
+  fix_border_issues() -> table_nice
+
+sect_properties_portrait <-
+  prop_section(page_size = page_size(orient = "portrait", width = 11.7,
+                                     height = 8.3),
+               type = "nextPage",
+               page_margins = page_mar())
+
+save_as_docx(table_nice,
+             path = paste0("table_nice", ".docx"),
+             pr_section = sect_properties_portrait)
+```
+
